@@ -81,7 +81,10 @@
     }
     #screen::-webkit-scrollbar { display: none; }
 
-    .line { word-break: break-word; }
+    .line { 
+           word-break: break-word;
+           white-space: pre-wrap;
+    }
 
     .cmd::before {
       content: '# ';
