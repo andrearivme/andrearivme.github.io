@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>ANDREARIVM_PORTAFOLIO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #050d14;
+      --text: #a8d4f5;
+      --comment: #3a6b8a;
+      --highlight: #00cfff;
+      --prompt-color: #00bfff;
+      --accent: #38b6ff;
+      --green: #00e5ff;
+      --yellow: #0af0ff;
+      --red: #ff4d6d;
+      --magenta: #7b61ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* CRT scanlines */
+    body::before {
+      content: '';
+      display: block;
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.18) 50%),
+        linear-gradient(90deg, rgba(255,0,0,0.04), rgba(0,255,0,0.02), rgba(0,0,255,0.04));
+      background-size: 100% 2px, 3px 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* CRT flicker */
+    body::after {
+      content: '';
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(18,16,16,0.07);
+      opacity: 0;
+      z-index: 10;
+      pointer-events: none;
+      animation: flicker 0.18s infinite;
+    }
+
+    @keyframes flicker {
+      0%   { opacity: 0.27; }
+      20%  { opacity: 0.26; }
+      50%  { opacity: 0.30; }
+      80%  { opacity: 0.25; }
+      100% { opacity: 0.28; }
+    }
+
+    @keyframes blink {
+      to { opacity: 0; }
+    }
+
+    #screen {
+      position: absolute;
+      top: 60px;
+      left: 70px;
+      right: 70px;
+      bottom: 60px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      line-height: 1.75;
+      scrollbar-width: none;
+    }
+    #screen::-webkit-scrollbar { display: none; }
+
+    .line { word-break: break-word; }
+
+    .cmd::before {
+      content: '# ';
+      color: var(--prompt-color);
+    }
+
+    .output { color: var(--text); white-space: pre-wrap; }
+
+    .input-line {
+      display: flex;
+      align-items: baseline;
+    }
+    .input-line::before {
+      content: '# ';
+      color: var(--prompt-color);
+      flex-shrink: 0;
+    }
+    #input-text { outline: none; min-width: 2px; word-break: break-all; }
+    #cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--prompt-color);
+      box-shadow: 0 0 8px var(--prompt-color), 0 0 2px #fff;
+      vertical-align: middle;
+      animation: blink 1s steps(2, start) infinite;
+      margin-left: 1px;
+    }
+
+    .c-comment  { color: var(--comment); }
+    .c-hl       { color: var(--highlight); font-weight: bold; }
+    .c-accent   { color: var(--accent); }
+    .c-green    { color: var(--green); }
+    .c-yellow   { color: var(--yellow); }
+    .c-red      { color: var(--red); }
+    .c-magenta  { color: var(--magenta); }
+    .c-prompt   { color: var(--prompt-color); }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    a:hover {
+      background: var(--text);
+      color: var(--bg);
+    }
+    a[data-cmd]:hover {
+      background: var(--prompt-color);
+      color: var(--bg);
+    }
+
+    footer {
+      position: fixed;
+      bottom: 15px;
+      right: 20px;
+      color: var(--comment);
+      font-size: 13px;
+      z-index: 5;
+    }
+    footer a { color: var(--comment); }
+    footer a:hover { color: var(--bg); background: var(--comment); }
+
+    /* mobile */
+    @media (max-width: 600px) {
+      #screen { top: 30px; left: 20px; right: 20px; bottom: 45px; }
+      footer { bottom: 10px; right: 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="screen">
+  <!-- output lines go here -->
+  <div class="input-line">
+    <span id="input-text"></span><span id="cursor"></span>
+  </div>
+</div>
+
+<footer>
+  <a href="https://www.linkedin.com/in/andrea-valeria-rivera-mendoza-970117323/" target="_blank">linkedin</a>
+  &nbsp;
+  <a href="mailto:andreavaleria.riveramendoza@gmail.com">email</a>
+</footer>
+
+<script>
+/* ─── CONTENIDO DE LOS ARCHIVOS ─────────────────────────── */
+const FILES = {
+
+  perfil: `Hola, soy <span class="c-hl">Andrea Valeria Rivera Mendoza</span>, Analista de Ciberseguridad
+y próxima a graduarme de la carrera de Seguridad en Tecnologías de la
+Información en la Universidad Autónoma de Nuevo León, dentro de la
+Facultad de Ciencias Físico Matemáticas.
+
+Cuento con experiencia en análisis de vulnerabilidades, pruebas de
+seguridad en aplicaciones, desarrollo seguro y mejora de procesos
+alineados a modelos y estándares como CMMI, ISO 27001 y NIST. He
+participado en proyectos relacionados con identificación y remediación
+de vulnerabilidades, implementación de controles de seguridad y
+fortalecimiento de procesos organizacionales enfocados en seguridad
+de la información.
+
+Me interesa continuar desarrollándome en áreas de ciberseguridad
+ofensiva, gestión de vulnerabilidades y seguridad en aplicaciones,
+contribuyendo a la protección y mejora continua de los entornos
+tecnológicos.
+
+<span class="c-comment">// Herramientas de ciberseguridad</span>
+<span class="c-green">●</span> Kali Linux · Nmap · Burp Suite · Wireshark
+<span class="c-green">●</span> Metasploit · Nessus · OWASP ZAP · Gophish · Qualys
+<span class="c-green">●</span> Fortify on Demand
+
+<span class="c-comment">// Entorno y plataformas</span>
+<span class="c-green">●</span> Windows · VMware · VirtualBox · Azure
+<span class="c-green">●</span> CMMi · Scrum · Six Sigma
+
+<span class="c-comment">// Normativas y estándares</span>
+<span class="c-green">●</span> ISO 27001 · NIST · COBIT
+<span class="c-green">●</span> LFPDPPP · PCI DSS · OWASP Top 10
+
+<span class="c-comment">// Idiomas</span>
+<span class="c-green">●</span> Español (Nativo) · Inglés (B2)
+
+<span class="c-comment">// Ubicación</span>
+<span class="c-green">●</span> Monterrey, Nuevo León · México`,
+
+  experiencia: `<span class="c-comment">// Experiencia Laboral ──────────────────────────────────</span>
+
+<span class="c-yellow">Feb 2026 – Actualidad</span>  Analista de Ciberseguridad · DTyDD
+   • Pruebas de seguridad en sistemas y aplicaciones en entornos controlados.
+   • Recuperación y bloqueo de cuentas comprometidas con análisis de malware.
+   • Documentación de amenazas, comportamiento malicioso y medidas correctivas.
+
+<span class="c-yellow">Dic 2024 – Ene 2026</span>   Analista de Desarrollo y Proyectos · USIT
+   • Implementación de procesos CMMi para mejorar calidad organizacional.
+   • Desarrollo de documentación y métricas de productividad.
+   • Revisión y validación de sistemas, reporte y corrección de errores.
+   • Diseño de políticas de seguridad alineadas con ISO 27001 y NIST.
+   • Análisis de riesgos y elaboración de estrategias preventivas/correctivas.
+
+<span class="c-hl">Educación</span>
+
+<span class="c-yellow">Cursando (5° año)</span>     Lic. en Seguridad en Tecnologías de la Información
+                      Universidad Autónoma de Nuevo León
+
+<span class="c-hl">Certificaciones y Cursos</span>
+
+<span class="c-yellow">2026</span>  Scrum Fundamentals Certified – VMEdu
+<span class="c-yellow">2026</span>  Six Sigma Yellow Belt – VMEdu
+<span class="c-yellow">2025</span>  Introduction to Cybersecurity – Cisco Networking Academy
+<span class="c-yellow">2024</span>  CC Certified in Cybersecurity (CC) – ISC2
+<span class="c-yellow">2024</span>  Fortinet Certified Fundamentals in Cybersecurity – Fortinet
+<span class="c-yellow">2024</span>  Enterprise Design Thinking Practitioner – IBM SkillsBuild
+<span class="c-yellow">2024</span>  Project Management Fundamentals – IBM SkillsBuild
+<span class="c-yellow">2024</span>  Security Essentials – Academia de Ciberseguridad
+
+<span class="c-hl">Descarga</span>
+
+   <a href="files/cv_andrea_rivera.pdf" target="_blank">↓ cv_andrea_rivera_2026.pdf</a>`,
+
+  proyectos: `<span class="c-comment">// Proyectos ────────────────────────────────────────────</span>
+
+<span class="c-hl">01 · Honeypot</span>  <span class="c-comment">[ Corporativo ]</span>
+<span class="c-yellow">Implementación de Infraestructura Honeypot para Detección y</span>
+<span class="c-yellow">Monitoreo de Campañas de Phishing</span>
+
+   Desarrollo e implementación de un entorno honeypot orientado a la
+   detección y monitoreo de ataques de phishing dirigidos a cuentas
+   corporativas. El proyecto permitió analizar patrones de ataque,
+   detectar accesos sospechosos y automatizar procesos de monitoreo
+   y bloqueo de cuentas comprometidas.
+
+   <span class="c-comment">Tecnologías:</span>
+   <span class="c-green">●</span> Kali Linux · Python · Docker · Wireshark · Linux
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-hl">02 · Campaña de Phishing Simulada</span>  <span class="c-comment">[ Personal / Académico ]</span>
+<span class="c-yellow">Desarrollo de Plataforma "Registro de Estudiantes"</span>
+
+   Desarrollo de una campaña de phishing simulada con fines académicos
+   y de concientización en ciberseguridad. Consistió en la creación de
+   una página web que simulaba un portal de registro estudiantil con
+   apariencia realista, para evaluar el reconocimiento de intentos de
+   phishing y analizar comportamientos de interacción ante sitios
+   fraudulentos.
+
+   <span class="c-comment">Tecnologías:</span>
+   <span class="c-green">●</span> HTML · CSS · JavaScript · PHP · Diseño web responsivo
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-hl">03 · Desarrollo de Software</span>  <span class="c-comment">[ Corporativo ]</span>
+<span class="c-yellow">Plataforma Municipal de Gestión y Analítica Financiera "Numeralia"</span>
+
+   Participación en el desarrollo de un sistema orientado a la
+   administración y visualización de pagos realizados por habitantes
+   de un municipio. La plataforma permitía registrar pagos, consultar
+   información financiera y generar gráficas y métricas relacionadas
+   con recaudación y cumplimiento de pagos. Desarrollada para optimizar
+   el control administrativo y facilitar el análisis de información
+   mediante reportes y visualizaciones dinámicas.
+
+   <span class="c-comment">Tecnologías:</span>
+   <span class="c-green">●</span> HTML · CSS · Java · .NET · SQL · Generación de gráficas y reportes
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-hl">04 · Investigación Académica</span>  <span class="c-comment">[ UANL · FCFM ]</span>
+<span class="c-yellow">La Influencia del Nivel Socioeconómico en el Comportamiento Digital</span>
+<span class="c-yellow">y el Impacto Psicológico de los Ciberataques</span>
+
+   Investigación desarrollada como parte de la estancia para la
+   formación profesional integradora de la carrera LSTI en la UANL,
+   Facultad de Ciencias Físico Matemáticas.
+
+   El proyecto analizó la relación entre el nivel socioeconómico,
+   la conciencia digital y el impacto psicológico de los ciberdelitos
+   en estudiantes universitarios, utilizando encuestas, entrevistas
+   y análisis estadístico para identificar patrones de comportamiento
+   y hábitos de ciberseguridad.
+
+   <span class="c-comment">Tecnologías:</span>
+   <span class="c-green">●</span> Power BI · Análisis estadístico · Visualización de datos`,
+
+  academia: `<span class="c-comment">// Formación Académica ──────────────────────────────────</span>
+
+<span class="c-hl">Áreas de Énfasis Curricular</span>
+<span class="c-comment">Lic. en Seguridad en Tecnologías de la Información · UANL</span>
+
+<span class="c-yellow">▸ Cómputo Forense</span>
+   Adquisición, preservación y análisis de evidencia digital en
+   dispositivos y sistemas comprometidos. Cadena de custodia y
+   elaboración de reportes periciales.
+
+<span class="c-yellow">▸ Programas de Amenazas Internas</span>
+   Identificación, monitoreo y mitigación de riesgos originados
+   desde el interior de la organización. Diseño de políticas de
+   control de acceso y concienciación del usuario.
+
+<span class="c-yellow">▸ Prueba de Vulnerabilidades</span>
+   Metodologías de Ethical Hacking, Pentesting y análisis de
+   superficie de ataque. Uso de frameworks estándar para evaluar
+   la postura de seguridad de sistemas y redes.
+
+<span class="c-yellow">▸ Gobernanza y Gestión de Riesgos</span>
+   Marcos COBIT e ISO 27001 aplicados a la gestión de riesgos en
+   infraestructuras críticas. Evaluación de controles y planes de
+   tratamiento de riesgos.
+
+<span class="c-yellow">▸ Reconocimiento y Detección de Amenazas</span>
+   Tipos de malware, técnicas de identificación y eliminación en
+   dispositivos comprometidos. Análisis de comportamiento malicioso
+   y respuesta a incidentes.
+
+<span class="c-yellow">▸ Seguridad en Aplicaciones</span>
+   Testing de seguridad en aplicaciones web y móviles. Modelado de
+   amenazas (STRIDE, DREAD) para identificar vectores de ataque
+   durante el ciclo de desarrollo.
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-hl">Estancia de Investigación</span>
+<span class="c-comment">Asesor: Osvaldo Habib González González · UANL · Nov 2025</span>
+
+   Investigación sobre la influencia del nivel socioeconómico en el
+   comportamiento digital y el impacto psicológico de los ciberataques
+   en estudiantes de la Facultad de Ciencias Físico-Matemáticas.
+
+   <span class="c-green">●</span> Diseño y aplicación de encuesta a 352 alumnos (muestra estadística
+     con 95% de confianza y 5% de margen de error).
+   <span class="c-green">●</span> Realización de 17 entrevistas cualitativas a víctimas de ciberataques.
+   <span class="c-green">●</span> Análisis de la relación entre nivel socioeconómico y conciencia digital.
+   <span class="c-green">●</span> Identificación de impactos psicológicos: ansiedad, miedo y desconfianza
+     como respuestas predominantes post-incidente.
+   <span class="c-green">●</span> El phishing fue el vector más frecuente (35% de los casos).
+   <span class="c-green">●</span> Propuesta de campaña educativa con simulador interactivo de phishing
+     para Nuevo León.`,
+
+  recomendaciones: `<span class="c-comment">// Recomendaciones ──────────────────────────────────────</span>
+
+<span class="c-magenta">"</span>Me permito informar que conozco y recomiendo ampliamente a la Sta.
+Andrea Valeria Rivera Mendoza, quien apoyó en diversos proyectos de
+software desempeñando tareas de Analista de Desarrollo, Administración
+de Proyectos, Gestión de recursos, Ejecución de herramientas de
+seguridad e Implementación de soluciones con clientes. Durante los
+diferentes proyectos demostró ser una persona muy activa; puedo asegurar
+que es íntegra, estable, totalmente responsable y competente para
+cualquier tipo de actividad que se le encomiende. Cuenta con excelentes
+valores: honestidad, perseverancia, tolerancia y compromiso.<span class="c-magenta">"</span>
+   — <span class="c-hl">Shamir Alejandro Rodríguez Ojeda</span> · Project Manager · USIT
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-magenta">"</span>Tuve la fortuna de trabajar con Andrea Valeria Rivera Mendoza en el
+equipo de desarrollo de software. Durante este tiempo, no solo aprendí
+de sus valiosos aportes en administración de proyectos y seguridad, sino
+también de su invaluable tenacidad, perseverancia e inquietud por resolver
+problemas complejos. El área al que se acerca requiere de una gran atención
+al detalle, y estoy seguro que su desempeño profesional y académico, que
+puedo atestiguar con certeza, son prueba de que es capaz de cumplir los
+estándares que se esperan de ella.<span class="c-magenta">"</span>
+   — <span class="c-hl">Roberto Treviño Cervantes</span> · Desarrollador de Software · USIT / Director General MNNW
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-magenta">"</span>Me permito recomendar ampliamente a Andrea Valeria Rivera Mendoza.
+Participó activamente en diversos proyectos, demostrando sólidos
+conocimientos técnicos y un enfoque meticuloso en la implementación de
+buenas prácticas de seguridad. Su formación en seguridad de TI se reflejó
+consistentemente en su capacidad para identificar vulnerabilidades, proponer
+soluciones y mantener estándares de protección de la información.
+Adicionalmente, asumió responsabilidades de coordinación y supervisión,
+gestionando eficientemente información, verificando cumplimiento de
+actividades y evaluando proyectos asignados — lo que demostró sus
+capacidades de liderazgo, organización y comunicación efectiva. Destaco
+especialmente su disciplina académica, responsabilidad y capacidad de
+aprendizaje continuo. Andrea es una persona profesional con mucho potencial
+en el campo de la ciberseguridad.<span class="c-magenta">"</span>
+   — <span class="c-hl">Miguel Ángel Vázquez Díaz</span> · Desarrollador de Software · Dirección General de Tecnologías, San Pedro Garza García, N.L.`,
+
+  casos: `<span class="c-comment">// Casos de éxito ───────────────────────────────────────</span>
+
+<span class="c-hl">CASO 01 · Implementación de Procesos CMMI Nivel 3</span>  <span class="c-comment">[ USIT · 2024–2025 ]</span>
+
+   <span class="c-comment">Problema →</span>
+   La empresa llevaba ~2 años intentando obtener la certificación CMMI
+   Nivel 3. Los proyectos carecían de estandarización de procesos,
+   seguimiento documental y evidencias suficientes para la evaluación.
+
+   <span class="c-comment">Solución →</span>
+   Se tomó un proyecto de desarrollo de software como piloto para
+   implementar prácticas CMMI. Se elaboraron y gestionaron documentos
+   clave: planes de trabajo, minutas, seguimiento de actividades, control
+   de cambios y evidencias de cumplimiento. Se dio seguimiento continuo
+   a la correcta aplicación de procesos durante ~4 meses.
+
+   <span class="c-green">Resultado → Certificación CMMI Nivel 3 obtenida exitosamente.</span>
+   <span class="c-green">           Las prácticas se extendieron a todos los proyectos,</span>
+   <span class="c-green">           sentando las bases para la preparación hacia CMMI Nivel 4.</span>
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-hl">CASO 02 · Implementación de Honeypot para Detección de Phishing</span>  <span class="c-comment">[ DTyDD · 2026 ]</span>
+
+   <span class="c-comment">Problema →</span>
+   La organización enfrentaba un incremento considerable de ataques de
+   phishing dirigidos a cuentas corporativas, generando riesgos de
+   compromiso de credenciales y accesos no autorizados.
+
+   <span class="c-comment">Solución →</span>
+   Se propuso e implementó un entorno honeypot para monitorear intentos
+   de ataque y analizar patrones de campañas de phishing. La solución
+   permitió identificar comportamientos sospechosos, investigar el origen
+   de los ataques y automatizar procesos de detección y bloqueo de
+   cuentas comprometidas.
+
+   <span class="c-green">Resultado → Mejora significativa en detección temprana y respuesta ante</span>
+   <span class="c-green">           ataques de phishing. Reducción de tiempos de reacción y</span>
+   <span class="c-green">           fortalecimiento de la protección de cuentas corporativas.</span>
+
+<span class="c-comment">// ─────────────────────────────────────────────────────</span>
+
+<span class="c-hl">CASO 03 · Identificación y Remediación de Vulnerabilidad DoS</span>  <span class="c-comment">[ DTyDD · 2026 ]</span>
+
+   <span class="c-comment">Problema →</span>
+   Durante la fase de desarrollo de una aplicación, existía el riesgo
+   de que vulnerabilidades no detectadas afectaran la disponibilidad
+   del sistema una vez liberado a producción.
+
+   <span class="c-comment">Solución →</span>
+   Se realizaron pruebas manuales de seguridad sobre la aplicación para
+   identificar posibles vulnerabilidades. Se detectó una vulnerabilidad
+   de Denial of Service (DoS) mediante la cual era posible afectar la
+   disponibilidad del sistema. El hallazgo fue documentado y notificado
+   a la Project Manager y al equipo de desarrollo con evidencia técnica
+   y detalles necesarios para su corrección.
+
+   <span class="c-green">Resultado → Vulnerabilidad corregida antes de salir a producción,</span>
+   <span class="c-green">           evitando afectaciones de disponibilidad y fortaleciendo</span>
+   <span class="c-green">           la seguridad de la aplicación en etapa de desarrollo.</span>`,
+
+  contacto: `<span class="c-comment">// Contacto ─────────────────────────────────────────────</span>
+
+<span class="c-hl">¿Quieres trabajar juntos o tienes alguna pregunta?</span>
+No dudes en escribirme por cualquiera de estos medios.
+
+<span class="c-comment">// Correo electrónico</span>
+<span class="c-green">●</span> <a href="mailto:andreavaleria.riveramendoza@gmail.com">andreavaleria.riveramendoza@gmail.com</a>
+
+<span class="c-comment">// Teléfono</span>
+<span class="c-green">●</span> +52 81 2408 2885
+
+<span class="c-comment">// LinkedIn</span>
+<span class="c-green">●</span> <a href="https://www.linkedin.com/in/andrea-valeria-rivera-mendoza-970117323/" target="_blank">linkedin.com/in/andrea-valeria-rivera-mendoza</a>
+
+<span class="c-comment">// Ubicación</span>
+<span class="c-green">●</span> Monterrey, Nuevo León · México
+<span class="c-green">●</span> Disponible para trabajo presencial y remoto`,
+
+  help: `Comandos disponibles:
+
+   <span class="c-prompt">ls</span>              lista los archivos del portafolio
+   <span class="c-prompt">cat</span> <span class="c-hl">[archivo]</span>   muestra el contenido de un archivo
+   <span class="c-prompt">clear</span>           limpia la pantalla
+   <span class="c-prompt">whoami</span>          información de la sesión actual
+   <span class="c-prompt">help</span>  ·  <span class="c-prompt">?</span>      muestra este mensaje
+
+   Archivos disponibles:
+   <a data-cmd="cat perfil">perfil</a>   <a data-cmd="cat experiencia">experiencia</a>   <a data-cmd="cat proyectos">proyectos</a>
+   <a data-cmd="cat academia">academia</a>   <a data-cmd="cat recomendaciones">recomendaciones</a>
+   <a data-cmd="cat casos">casos</a>   <a data-cmd="cat contacto">contacto</a>`,
+};
+
+/* ─── SHELL ──────────────────────────────────────────────── */
+const screen   = document.getElementById('screen');
+const inputEl  = document.getElementById('input-text');
+const cursorEl = document.getElementById('cursor');
+let history = [], histIdx = -1;
+
+function getInputLine() {
+  return screen.querySelector('.input-line');
+}
+
+function write(html, isCmd = false) {
+  const il = getInputLine();
+  const div = document.createElement('div');
+  div.className = 'line' + (isCmd ? ' cmd' : '');
+  div.innerHTML = html;
+  screen.insertBefore(div, il);
+  scrollBottom();
+}
+
+function scrollBottom() {
+  screen.scrollTop = screen.scrollHeight;
+}
+
+function clear() {
+  const il = getInputLine();
+  [...screen.querySelectorAll('.line')].forEach(l => l.remove());
+  scrollBottom();
+}
+
+function process(raw) {
+  const cmd = raw.trim();
+  if (!cmd) return;
+
+  write(`${escHtml(cmd)}`, true);
+  history.unshift(cmd);
+  histIdx = -1;
+
+  const parts = cmd.split(/\s+/);
+  const base  = parts[0].toLowerCase();
+  const arg   = parts.slice(1).join(' ');
+
+  if (base === 'clear') { clear(); return; }
+
+  if (base === 'whoami') {
+    write(`<span class="c-hl">ANDREARIVM_PORTAFOLIO</span>
+   usuario    → visitante
+   sistema    → Andrea Valeria Rivera Mendoza
+   rol        → Analista de Ciberseguridad
+              → Analista de Desarrollo y Proyectos
+   ubicación  → Monterrey, Nuevo León
+   timestamp  → ${new Date().toLocaleString('es-MX')}`);
+    return;
+  }
+
+  if (base === 'ls') {
+    const names = Object.keys(FILES);
+    const linked = names.map(n =>
+      `<a data-cmd="cat ${n}">${n}</a>`
+    ).join('   ');
+    write(linked);
+    return;
+  }
+
+  if (base === 'cat') {
+    if (!arg) { write('<span class="c-red">cat: falta el nombre del archivo</span>'); return; }
+    if (FILES[arg]) {
+      write(`<span class="c-comment">// ${arg} ─────────────────────────────────────────</span>`);
+      write(`<span class="output">${FILES[arg]}</span>`);
+    } else {
+      write(`<span class="c-red">cat: ${escHtml(arg)}: No such file or directory</span>`);
+    }
+    return;
+  }
+
+  if (base === 'help' || base === '?') {
+    write(`<span class="output">${FILES.help}</span>`);
+    return;
+  }
+
+  if (base === 'sudo') {
+    write(`<span class="c-red">visitante is not in the sudoers file. This incident will be reported.</span>`);
+    return;
+  }
+
+  write(`<span class="c-red">comando no encontrado: ${escHtml(base)}</span> — escribe <a data-cmd="help">help</a> para ver los disponibles`);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ─── TECLADO ────────────────────────────────────────────── */
+// Usamos un buffer propio para evitar que el browser colapse espacios en innerText
+let buf = [];
+
+function renderBuf() {
+  // Usamos &nbsp; para espacios para que no se colapsen
+  inputEl.innerHTML = buf.map(c => c === ' ' ? '&nbsp;' : escHtml(c)).join('');
+  scrollBottom();
+}
+
+function getBufText() {
+  return buf.join('');
+}
+
+document.addEventListener('keydown', e => {
+  const k = e.key;
+
+  // Siempre prevenir el scroll con espacio
+  if (k === ' ') {
+    e.preventDefault();
+    buf.push(' ');
+    renderBuf();
+    return;
+  }
+
+  if (k === 'Enter') {
+    e.preventDefault();
+    const cmd = getBufText();
+    buf = [];
+    renderBuf();
+    process(cmd);
+    return;
+  }
+
+  if (k === 'Backspace') {
+    e.preventDefault();
+    buf.pop();
+    renderBuf();
+    return;
+  }
+
+  if (k === 'ArrowUp') {
+    e.preventDefault();
+    if (histIdx < history.length - 1) histIdx++;
+    buf = (history[histIdx] ?? '').split('');
+    renderBuf();
+    return;
+  }
+
+  if (k === 'ArrowDown') {
+    e.preventDefault();
+    if (histIdx > 0) histIdx--;
+    else { histIdx = -1; buf = []; renderBuf(); return; }
+    buf = (history[histIdx] ?? '').split('');
+    renderBuf();
+    return;
+  }
+
+  if (k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    buf.push(k);
+    renderBuf();
+  }
+});
+
+/* ─── CLICS EN LINKS ─────────────────────────────────────── */
+screen.addEventListener('click', e => {
+  const a = e.target.closest('a[data-cmd]');
+  if (a) {
+    e.preventDefault();
+    const cmd = a.dataset.cmd;
+    buf = []; renderBuf();
+    process(cmd);
+  }
+});
+
+/* ─── INICIO ─────────────────────────────────────────────── */
+function boot() {
+  write(`<span class="c-comment">// ANDREARIVM_PORTAFOLIO //</span>
+<span class="c-hl">ANDREA RIVERA</span>
+<span class="c-accent">Analista de Ciberseguridad | Analista de Desarrollo y Proyectos</span>
+
+<span class="c-comment">Escribe <a data-cmd="help">help</a> para ver los comandos disponibles.</span>`);
+
+  // auto-run ls y cat perfil
+  setTimeout(() => {
+    buf = 'ls'.split(''); renderBuf();
+    setTimeout(() => {
+      process('ls'); buf = []; renderBuf();
+      setTimeout(() => {
+        buf = 'cat perfil'.split(''); renderBuf();
+        setTimeout(() => {
+          process('cat perfil'); buf = []; renderBuf();
+        }, 400);
+      }, 300);
+    }, 400);
+  }, 300);
+}
+
+boot();
+</script>
+</body>
+</html>
